@@ -42,7 +42,7 @@ export class CarsController {
   updateCar(@Param('id', ParseIntPipe) id: number, @Body() payload: any) {
     const car: any = this.carsService.update(id, payload);
     return {
-      message: 'Car updated',
+      message: 'Car update',
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       car: car,
       status: 'success',
