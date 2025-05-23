@@ -1,54 +1,76 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Injectable, NotFoundException } from '@nestjs/common';
-
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Car } from './interfaces';
+import { v4 as uuid } from 'uuid';
+import { CreateCarDto, UpdateCarDto } from './dto';
 @Injectable()
 export class CarsService {
-    private cars = [
-        {
-            id: 1,
-            brand: 'Ferrari',
-            model: '488',
-        },
-        {
-            id: 2,
-            brand: 'Porsche',
-            model: '911',
-        },
-        {
-            id: 3,
-            brand: 'Lamborghini',
-            model: 'Huracan',
-        },
-    ];
+  private cars: Car[] = [
+    {
+      id: uuid(),
+      brand: 'Ferrari',
+      model: '488',
+      year: 2024,
+    },
+    {
+      id: uuid(),
+      brand: 'Porsche',
+      model: '911',
+      year: 2024,
+    },
+    {
+      id: uuid(),
+      brand: 'Lamborghini',
+      model: 'Huracan',
+      year: 2024,
+    },
+  ];
 
-    findAll() {
-        return this.cars;
-    }
+  findAll() {
+    return this.cars;
+  }
 
-    findOneById(id: number) {
-        const car: any = this.cars.find((car) => car.id === id);
-        if (!car) throw new NotFoundException('Car not found');
-        return car;
-    }
+  findOneById(id: string): Car {
+    const car: any = this.cars.find((car) => car.id === id);
+    if (!car) throw new NotFoundException('Car not found');
+    return car;
+  }
 
-    create(payload: any) {
-        this.cars.push(payload);
-        return this.cars[this.cars.length - 1];
-    }
+  create(payload: CreateCarDto): Car {
+    this.cars.push({
+      id: uuid(),
+      ...payload,
+    });
+    return this.cars[this.cars.length - 1];
+  }
 
-    update(id: number, payload: any) {
-        const car: any = this.cars.find((car) => car.id === id);
-        if (!car) throw new NotFoundException('Car not found');
-        this.cars[id] = payload;
-        return this.cars[id];
+  update(id: string, payload: UpdateCarDto): Car {
+    let carDB: Car = this.findOneById(id);
+    if (payload.id && payload.id !== id) {
+      throw new BadRequestException('Car is not allowed to change id');
     }
+    this.cars = this.cars.map((car) => {
+      if (car.id === id) {
+        carDB = { ...carDB, ...payload, id };
+        return carDB;
+      }
+      return car;
+    });
+    return carDB;
+  }
 
-    delete(id: number) {
-        const car: any = this.cars.find((car) => car.id === id);
-        if (!car) throw new NotFoundException('Car not found');
-        this.cars = this.cars.filter((car) => car.id !== id);
-        return this.cars;
-    }
+  delete(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const carDB: Car = this.findOneById(id);
+    this.cars = this.cars.filter((car) => car.id !== id);
+    return;
+  }
+
+  fillCarsWithSeedData(cars: Car[]) {
+    this.cars = cars;
+  }
 }
